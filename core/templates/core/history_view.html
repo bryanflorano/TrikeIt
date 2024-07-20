@@ -1,0 +1,206 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Trip History | TrikeIt{% endblock %}
+
+{% block content %}
+<style>
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        background-color: var(--background-color);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-content {
+        margin-bottom: 15px;
+    }
+
+    .card-content h3 {
+        margin-bottom: 10px;
+    }
+
+    .card-content p {
+        margin: 5px 0;
+        color: var(--text-color);
+    }
+
+    .card-details {
+        margin-top: 10px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 10px;
+        display: none;
+    }
+
+    .card-actions {
+        display: flex;
+        justify-content: flex-end; /* Adjust alignment */
+        align-items: center;
+        margin-top: 10px; /* Added margin for spacing */
+    }
+
+    .card-actions button {
+        padding: 8px 12px;
+        margin-left: 10px;
+    }
+
+    .zzz {
+        display: block; /* Ensures the image is a block element */
+        width: 100px; /* Set width of the image container */
+        height: 100px; /* Set height of the image container */
+        object-fit: cover; /* Crop the image to fit the container */
+        object-position: center; /* Center the image within the container */
+        margin: 0 auto; /* Center the image horizontally within its container */
+        opacity: 0.5;
+    }
+
+    .empty-message {
+        display: block; /* Ensures text is displayed as a block element */
+        text-align: center; /* Center-align text */
+        color: var(--label-color); /* Color for the empty message */
+        margin-top: 10px; /* Space between the image and the text */
+    }
+
+    .trip-history-controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between; /* Align items to the right */
+        align-items: center;
+        margin-left: 10px;
+        margin-right: 10px;
+        margin-bottom: 20px; /* Add margin at the bottom for spacing */
+        white-space: nowrap; /* Prevent wrapping */
+    }
+
+    .trip-history-controls .btn {
+        margin-left: 10px; /* Add left margin to buttons for spacing between them */
+        margin-top: -10px;
+    }
+</style>
+<div class="container">
+    <h1>Trip History</h1>
+
+    <!-- Search and filter options -->
+    <div class="trip-history-controls">
+        <input type="text" id="search-input" placeholder="Search by location...">
+        <button onclick="filterTrips()" class="btn">Search</button>
+        <button onclick="showAllTrips()" class="btn">Show All</button>
+    </div>
+
+    <!-- Trip history list -->
+    <div class="card-container">
+        {% if profile.is_passenger %}
+            {% if trip_history %}
+                {% for trip in trip_history %}
+                    <div class="card">
+                        <!-- Trip summary details -->
+                        <div class="card-content">
+                            <h3>Booking ID: {{ trip.booking_id }}</h3>
+                            <p><strong>From:</strong> {{ trip.pickup_location }}</p>
+                            <p><strong>To:</strong> {{ trip.dropoff_location }}</p>
+                            <p><strong>Booking Time:</strong> {{ trip.created_at|date:"F j, Y | g:i A" }}</p>
+                            <p><strong>Trip Completed:</strong> {{ trip.completed_at|date:"F j, Y | g:i A" }}</p>
+                            <div class="card-actions">
+                                <button class="btn" onclick="toggleDetails(this)">Show more details</button>
+                                <form action="{% url 'review_trip_view' booking_id=trip.booking_id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" name="edit-review" class="btn">Edit Review</button>
+                                </form>
+                            </div>
+                            <!-- Trip details (hidden by default) -->
+                            <div class="card-details">
+                                <p><strong>Distance:</strong> {{ trip.distance }}</p>
+                                <p><strong>Travel Time:</strong> {{ trip.duration|format_duration }}</p>
+                                <p><strong>Fare:</strong> {{ trip.fare }}</p>
+                                <p><strong>Payment Method:</strong> {{ trip.payment_method }}</p>
+                                <p><strong>Driver:</strong> {{ trip.driver.first_name }} {{ trip.driver.last_name }}</p>
+                                <p><strong>Rating:</strong>
+                                    {% if trip.rating %}
+                                    <span class="star-ratings">
+                                        {{ trip.rating|stars_for_rating|safe }} {{ trip.rating }}
+                                    </span>
+                                    {% else %}
+                                    <span>No rating</span>
+                                    {% endif %}
+                                </p>
+                                <p><strong>Comment:</strong>
+                                    {% if trip.comment %}
+                                    <span>{{ trip.comment }}</span>
+                                    {% else %}
+                                    <span>No comment</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-message">
+                    <img src="{% static 'core/images/zzz.png' %}" alt="ZZZ" class="zzz">
+                    <p>This page is feeling a bit lonely. Time to book a trike!</p>
+                </div>            
+            {% endif %}
+        {% elif profile.is_driver %}
+            {% if driver_trip_history %}
+                {% for trip in driver_trip_history %}
+                    <div class="card">
+                        <!-- Trip summary details -->
+                        <div class="card-content">
+                            <h3>Booking ID: {{ trip.booking_id }}</h3>
+                            <p><strong>From:</strong> {{ trip.pickup_location }}</p>
+                            <p><strong>To:</strong> {{ trip.dropoff_location }}</p>
+                            <p><strong>Booking Time:</strong> {{ trip.created_at|date:"F j, Y | g:i A" }}</p>
+                            <p><strong>Trip Completed:</strong> {{ trip.completed_at|date:"F j, Y | g:i A" }}</p>
+                            <div class="card-actions">
+                                <button class="btn" onclick="toggleDetails(this)">Show more details</button>
+                            </div>
+                            <!-- Trip details (hidden by default) -->
+                            <div class="card-details">
+                                <p><strong>Distance:</strong> {{ trip.distance }}</p>
+                                <p><strong>Travel Time:</strong> {{ trip.duration|format_duration }}</p>
+                                <p><strong>Fare:</strong> {{ trip.fare }}</p>
+                                <p><strong>Payment Method:</strong> {{ trip.payment_method }}</p>
+                                <p><strong>Passenger:</strong> {{ trip.profile.first_name }} {{ trip.profile.last_name }}</p>
+                                <p><strong>Rating:</strong>
+                                    {% if trip.rating %}
+                                    <span class="star-ratings">
+                                        {{ trip.rating|stars_for_rating|safe }} {{ trip.rating }}
+                                    </span>
+                                    {% else %}
+                                    <span>No rating</span>
+                                    {% endif %}
+                                </p>
+                                <p><strong>Comment:</strong>
+                                    {% if trip.comment %}
+                                    <span>{{ trip.comment }}</span>
+                                    {% else %}
+                                    <span>No comment</span>
+                                    {% endif %}
+                                </p>                        
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-message">
+                    <img src="{% static 'core/images/zzz.png' %}" alt="ZZZ" class="zzz">
+                    <p>This page is feeling a bit lonely. Time to book a trike!</p>
+                </div>   
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+{% block scripts %}
+    <script src="{% static 'core/js/trip-history-controls.js' %}"></script>
+{% endblock %}
+
+{% endblock %}

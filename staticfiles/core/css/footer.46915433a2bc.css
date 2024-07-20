@@ -1,0 +1,33 @@
+/* Footer Styles */
+footer {
+    background: var(--footer-background-color);
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer-content {
+    margin-bottom: 10px;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.footer-links li {
+    margin: 0 10px;
+}
+
+.footer-links li a {
+    text-decoration: none;
+    color: var(--link-color);
+}
+
+footer img.logo {
+    height: 30px;
+    margin-top: 10px;
+    border-radius: 50%;
+}

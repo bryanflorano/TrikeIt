@@ -1,0 +1,231 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+
+{% load custom_filters %}
+
+{% block title %}Confirmed Booking | TrikeIt{% endblock %}
+
+{% block scripts %}
+    <!-- Load Google Maps API with API key and initialize map -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&callback=initializeMap" async defer></script>
+    <script>
+        // Initialize map with directions service and renderer
+        function initializeMap() {
+            var map;
+            var directionsService = new google.maps.DirectionsService();
+            var directionsRenderer = new google.maps.DirectionsRenderer();
+
+            // Get pickup and dropoff locations from confirmed booking data
+            var pickupLocation = new google.maps.LatLng({{ confirmed_booking.pickup_lat }}, {{ confirmed_booking.pickup_lng }});
+            var dropoffLocation = new google.maps.LatLng({{ confirmed_booking.dropoff_lat }}, {{ confirmed_booking.dropoff_lng }});
+
+            // Set map options
+            var mapOptions = {
+                center: pickupLocation, // Center map on pickup location
+                zoom: 17 // Zoom level
+            };
+
+            // Create map and bind directions renderer
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            directionsRenderer.setMap(map);
+
+            // Add marker based on booking status
+            {% if profile.is_passenger %}
+                {% if confirmed_booking.status == 'enroute_to_dest' %}
+                    // Add marker at dropoff location for passengers
+                    new google.maps.Marker({
+                        position: dropoffLocation,
+                        map: map,
+                        title: 'Drop-off Location'
+                    });
+                    map.setCenter(dropoffLocation); // Center map on dropoff location
+                {% else %}
+                    // Add marker at pickup location for passengers
+                    new google.maps.Marker({
+                        position: pickupLocation,
+                        map: map,
+                        title: 'Pick-up Location'
+                    });
+                    map.setCenter(pickupLocation); // Center map on pickup location
+                {% endif %}
+            {% elif profile.is_driver %}
+                {% if confirmed_booking.status == 'enroute_to_dest' %}
+                    // Add marker at dropoff location for drivers
+                    new google.maps.Marker({
+                        position: dropoffLocation,
+                        map: map,
+                        title: 'Drop-off Location'
+                    });
+                    map.setCenter(dropoffLocation); // Center map on dropoff location
+                {% else %}
+                    // Add marker at pickup location for drivers
+                    new google.maps.Marker({
+                        position: pickupLocation,
+                        map: map,
+                        title: 'Pick-up Location'
+                    });
+                    map.setCenter(pickupLocation); // Center map on pickup location
+                {% endif %}
+            {% endif %}
+        }
+    </script>
+    <script>
+        // Initialize map when DOM content is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMap();
+        });
+    </script>
+    <style>
+        .passenger-container,
+        .driver-container {
+            display: flex;
+            align-items: center;            
+            padding: 20px;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .passenger-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .passenger-info .btn {
+            margin-top: 10px;
+        }
+
+        /* Text details styling */
+        .passenger-details p,
+        .driver-details p {
+            margin: 5px 0;
+        }
+
+        /* Card/Box styling for headings */
+        .card {
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card h1, .card h2, .card h3, .card h4 {
+            margin: 10px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<body>
+    <div class="container">
+        <h1>Trip Details</h1>
+        {% if profile.is_passenger %}
+            {% if confirmed_booking.status == 'enroute_to_dest' and confirmed_booking.payment_method == 'Cash' %}
+                <!-- Passenger: Pay cash upon arrival -->
+                <div class="card">
+                    <h2>Pay cash upon arrival at your destination!</h2>
+                    <h3>{{ confirmed_booking.dropoff_location }}</h3>
+                    <h4>Have the exact payment ready.</h4>
+                </div>
+            {% elif confirmed_booking.status == 'enroute_to_dest' %}
+                <!-- Passenger: Enroute to destination -->
+                <div class="card">
+                    <h2>Hop off at your destination!</h2>
+                    <h3>{{ confirmed_booking.dropoff_location }}</h3>
+                    <h4>Check your belongings before leaving the trike.</h4>
+                </div>
+            {% else %}
+                <!-- Passenger: Driver enroute to pick up -->
+                <div class="card">
+                    <h2>Your driver is on the way!</h2>
+                    <h3>{{ confirmed_booking.pickup_location }}</h3>
+                    <h4>Get ready to board the trike.</h4>
+                </div>
+            {% endif %}
+
+            <!-- Map container for displaying pickup or dropoff location -->
+            <div id="map"></div>
+
+            <!-- Driver details -->
+            <div class="driver-container">
+                {% if confirmed_booking.driver.profile_picture %}
+                    <img src="{{ confirmed_booking.driver.profile_picture }}" alt="Profile Picture" class="profile-image">
+                {% endif %}
+                <div class="driver-details">
+                    <p><strong>Driver:</strong> {{ confirmed_booking.driver.first_name }} {{ confirmed_booking.driver.last_name }}</p>
+                    <p><strong>Ratings:</strong> {{ confirmed_booking.driver.average_rating|stars_for_rating|safe }} {{ confirmed_booking.driver.average_rating }}</p>
+                    <p><strong>Contact Number:</strong> {{ confirmed_booking.driver.contact_number }}</p>
+                    <p><strong>TODA:</strong> {{ confirmed_booking.driver.TODA_number }} - {{ confirmed_booking.driver.TODA }}</p>
+                    <p><strong>License Plate:</strong> {{ confirmed_booking.driver.license_plate_number }}</p>
+                    <p><strong>Distance:</strong> {{ confirmed_booking.distance }}</p>
+                    <p><strong>Estimated Duration:</strong> {{ confirmed_booking.estimated_duration }}</p>
+                </div>
+            </div>
+
+        {% elif profile.is_driver %}
+            {% if confirmed_booking.status == 'enroute_to_dest' %}
+                <!-- Driver: Enroute to dropoff -->
+                <div class="card">
+                    <h2>Let's drop off your passenger!</h2>
+                    <h3>{{ confirmed_booking.dropoff_location }}</h3>
+                    <h4>Drop off the passenger safely.</h4>
+                </div>
+            {% else %}
+                <!-- Driver: Enroute to pickup -->
+                <div class="card">
+                    <h2>Time to pick up your passenger!</h2>
+                    <h3>{{ confirmed_booking.pickup_location }}</h3>
+                    <h4>Confirm the identity of your passenger.</h4>
+                </div>
+            {% endif %}
+
+            <!-- Map container for displaying pickup or dropoff location -->
+            <div id="map" ></div>
+
+            <!-- Passenger details -->
+            <div class="passenger-container">
+                {% if confirmed_booking.profile.profile_picture %}
+                        <img src="{{ confirmed_booking.profile.profile_picture }}" alt="Profile Picture" class="profile-image">
+                {% endif %}
+                <div class="passenger-info">
+                    <div class="passenger-details">
+                        <p><strong>Passenger:</strong> {{ confirmed_booking.profile.first_name }} {{ confirmed_booking.profile.last_name }}</p>
+                        <p><strong>Contact Number:</strong> {{ confirmed_booking.profile.contact_number }}</p>
+                        <p><strong>Booking ID:</strong> {{ confirmed_booking.booking_id }}</p>
+                        {% if confirmed_booking.payment_method == 'Cash' %}
+                            <p><strong>Collect PHP {{ confirmed_booking.fare }} upon drop off!</strong></p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <!-- Button for trip status confirmation -->
+                        {% if confirmed_booking.status == 'enroute_to_dest' and confirmed_booking.payment_method == 'Cash' %}
+                            <!-- Form to confirm payment collected -->
+                            <form method="post" action="{% url 'review_trip_view' booking_id=confirmed_booking.booking_id %}">
+                                {% csrf_token %}
+                                <button type="submit" name="dropped_off" class="btn">Payment Collected</button>
+                            </form>
+                        {% elif confirmed_booking.status == 'enroute_to_dest' %}
+                            <!-- Form to confirm passenger dropped off -->
+                            <form method="post" action="{% url 'review_trip_view' booking_id=confirmed_booking.booking_id %}">
+                                {% csrf_token %}
+                                <button type="submit" name="dropped_off" class="btn">Passenger Dropped Off</button>
+                            </form>
+                        {% else %}
+                            <!-- Form to confirm passenger picked up -->
+                            <form method="post">
+                                {% csrf_token %}
+                                <button type="submit" name="picked_up" class="btn">Passenger Picked Up</button>
+                            </form>
+                        {% endif %}  
+                    </div>
+                </div>
+            </div> 
+        {% endif %}
+    </div>
+</body>
+{% endblock %}

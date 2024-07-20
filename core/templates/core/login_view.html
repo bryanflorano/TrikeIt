@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | TrikeIt</title>
+    {% load static %}
+    <!-- Favicon links -->
+    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'core/css/styles.css' %}">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0; /* Remove default body margin */
+            background-color: var(--background-color);
+        }
+
+        .login-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box; /* Include padding in the element's total width and height */
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-container img {
+            max-width: 75px; /* Adjust based on your logo size */
+            height: auto;
+        }
+
+        .logo-container h1 {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+
+        .messages {
+            list-style: none; /* Remove list bullets */
+            padding: 0; /* Remove default padding */
+            margin: 0 0 20px 0; /* Margin below the messages */
+        }
+
+        .messages li {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #f5c6cb;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        form label {
+            margin-bottom: 5px;
+            font-size: 14px; /* Label font size */
+            color: #333; /* Label color */
+        }
+
+        form input[type="text"],
+        form input[type="password"] {
+            width: 100%;
+            border: 1px solid #ccc;
+            margin-bottom: 20px; /* Space between input fields */
+            box-sizing: border-box;
+        }
+
+        form input[type="submit"] {
+            background-color: var(--button-color);
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 12px 20px;
+            border-radius: 5px;
+            margin-top: 10px; /* Margin for the submit button */
+            transition: background-color 0.3s;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: var(--button-hover-color);
+        }
+
+        p {
+            text-align: center;
+            margin: 10px 0; /* Margin around the paragraph */
+        }
+
+        p a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        p a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Logo and Company Name -->
+        <div class="logo-container">
+            <img src="{% static 'core/images/logo.png' %}" alt="TrikeIt Logo" class="logo">
+            <h1>Login</h1>
+        </div>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="POST" action="#">
+            {% csrf_token %}
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+            
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+            
+            <input type="submit" value="Login">
+        </form>
+
+        <p>Forgot your password? <a href="{% url 'password_reset' %}">Reset here!</a></p>
+        <p>Don't have an account yet? <a href="{% url 'signup_view' %}">Sign up now!</a></p>
+    </div>
+</body>
+</html>

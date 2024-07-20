@@ -1,0 +1,273 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+
+{% block title %}Home | TrikeIt{% endblock %}
+
+{% block head %}
+    {% block scripts %}
+        <!-- Include Google Maps API with Places library -->
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initializeMap" async defer></script>
+        <script src="{% static 'core/js/booking-map.js' %}"></script>
+        <script src="{% static 'core/js/driver-preview.js' %}"></script>
+        <script>
+            function initializeMap() {
+                // Check if active_route data is available
+                {% if active_route %}
+                    initMap(
+                        {{ active_route.pickup_lat }},
+                        {{ active_route.pickup_lng }},
+                        {{ active_route.dropoff_lat }},
+                        {{ active_route.dropoff_lng }}
+                    );
+                    activePickupLocation = "{{ active_route.pickup_location }}";
+                    activeDropoffLocation = "{{ active_route.dropoff_location }}";
+                {% else %}
+                    initMap(); // Initialize map with default coordinates or no coordinates
+                {% endif %}
+            }
+        </script>
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+<body onload="initializeMap()">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Main Content Styles */
+        main {
+            padding: 20px;
+        }
+
+        /* Booking Notice Styles */
+        .booking-notice {
+            background-color: var(--dark-background-color);
+            color: var(--primary-color);
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .booking-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .booking-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Form Styles */
+        /*form {
+            margin-bottom: 20px;
+        } */
+
+        /* Fare Details Styles */
+        .fare-section {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap; /* Allow wrapping if the content exceeds container width */
+            margin: 20px;
+            gap: 20px; /* Add space between the items */
+        }
+
+        .fare-calculation {
+            background-color: var(--dark-background-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: var(--text-color); /* Ensure text color contrasts with background */
+            flex: 1; /* Allow this element to grow and fill available space */
+            min-width: 250px; /* Set a minimum width to maintain readability */
+            max-width: 45%; /* Limit width for better readability and alignment */
+            margin: 20px auto; /* Center the element and add top/bottom margin */
+        }
+
+        .fare-calculation p {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .fare-calculation ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .fare-calculation li {
+            font-size: 1em;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .fare-calculation li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+
+        .fare-amount {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: var(--text-color); /* Ensure text color contrasts with background */
+            flex: 1; /* Allow this element to grow and fill available space */
+            min-width: 250px; /* Set a minimum width to maintain readability */
+            max-width: 45%; /* Limit width for better readability and alignment */
+            margin: 20px auto; /* Center the element and add top/bottom margin */
+            text-align: center; /* Center-align text */
+        }
+
+
+        .fare-amount h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .fare-amount .btn {
+            background-color: var(--dark-background-color);
+            cursor: not-allowed; /* Indicate the button is disabled */
+        }
+
+        .fare-amount .btn:enabled {
+            color: var(--button-text-color);
+            background-color: var(--button-color); /* Different color when active */
+            cursor: pointer; /* Indicate the button is clickable */
+        }
+
+        .fare-amount .btn:enabled:hover {
+            background-color: var(--button-hover-color); /* Hover background color */
+        }
+
+        /* Ensure disabled buttons have no hover effect */
+        .fare-amount .btn:disabled {
+            background-color: var(--dark-background-color); /* Gray background for disabled state */
+            color: var(--disabled-text-color, #666); /* Optional: Set a specific text color for disabled state */
+        }
+
+        #distance-in-html, #estimated-duration-in-html {
+            font-size: 16px;
+            margin-top: 10px;
+            color: var(--text-color); /* Ensures text color matches your theme */
+            line-height: 1.5; /* Improves readability */
+        }
+
+        /* Available Bookings Styles */
+        #available-bookings {
+            margin-top: 20px;
+        }
+    </style>
+
+    <div class="container">
+        <h1>Welcome, {{ user.first_name }}!</h1>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if profile.is_passenger %}
+            <!-- Passenger Interface -->
+            {% if active_booking %}
+                <div class="booking-notice">
+                    <a href="{% url 'waiting_view' booking_id=active_booking.booking_id %}" class="booking-link">You have an active booking. Click to view details</a>
+                </div>
+            {% endif %}
+
+            <!-- Form for Passenger Pick-up and Drop-off -->
+            <form method="post">
+                {% csrf_token %}
+                <label for="pickup_location">Pick-up:</label>
+                <input type="text" id="pickup_location" name="pickup_location" placeholder="Enter pick-up location" value="{{ active_route.pickup_location|default_if_none:'' }}">
+                <label for="dropoff_location">Drop-off:</label>
+                <input type="text" id="dropoff_location" name="dropoff_location" placeholder="Enter drop-off location" value="{{ active_route.dropoff_location|default_if_none:'' }}">
+                <input type="hidden" id="distance" name="distance">
+                <input type="hidden" id="distance_value" name="distance_value">
+                <input type="hidden" id="estimated_duration" name="estimated_duration">
+                <button type="submit" name="calculate_fare" class="btn">Calculate Fare</button>
+            </form>
+            
+            <!-- Display route details -->
+            <p id="distance-in-html">{% if active_route.distance %}Distance: {{ active_route.distance }}{% endif %}</p>
+            <p id="estimated-duration-in-html">{% if active_route.estimated_duration %}Estimated Duration: {{ active_route.estimated_duration }}{% endif %}</p>
+
+            <!-- Map Display -->
+            <div id="map"></div>
+
+            <!-- Display fare amount if available -->
+                    {% if active_route %}
+                        <div class="fare-section">
+                            <div class="fare-calculation">
+                                <p><em>Fare Calculation Overview:</em></p>
+                                <ul>
+                                    <li>Base Fare: PHP {{ fare_matrix.base_fare }}</li>
+                                    <li>Base Distance: {{ fare_matrix.base_distance }} km</li>
+                                    <li>Additional Distance: {{ active_route.additional_distance }} km</li>
+                                    <li>Fare per Additional Kilometer: PHP {{ fare_matrix.fare_per_km }}</li>
+                                    <li>Total Fare: PHP {{ active_route.fare }}</li>
+                                </ul>
+                            </div>     
+                            <div class="fare-amount">
+                                <h1><strong>PHP {{ active_route.fare }}</strong></h1>
+                                <form id="next" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" id="proceed_payment" name="payment" class="btn" disabled>Proceed to Payment</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endif %}
+
+        {% elif profile.is_driver %}
+            <!-- Driver Interface -->
+            <script>
+                function refreshBookings() {
+                    const xhttp = new XMLHttpRequest();
+                    xhttp.onreadystatechange = function() {
+                        if (this.readyState === 4 && this.status === 200) {
+                            document.getElementById("available-bookings").innerHTML = this.responseText;
+                        }
+                    };
+                    xhttp.open("GET", "{% url 'index' %}?refresh=true", true);
+                    xhttp.send();
+                }
+            </script>
+
+            {% if driver_active_booking %}
+                <div class="booking-notice">
+                    <a href="{% url 'confirmed_view' booking_id=driver_active_booking.booking_id %}" class="booking-link">You have an active booking. Click to view details</a>
+                </div>
+            {% endif %}
+
+            <!-- Available Bookings -->
+            <h2>Available Bookings</h2>
+            <button id="refresh-button" class="btn" onclick="refreshBookings()">Refresh Bookings</button>
+            <div id="available-bookings">
+                {% include 'core/_bookings.html' %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+{% endblock %}

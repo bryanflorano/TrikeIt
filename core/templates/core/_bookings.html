@@ -1,0 +1,117 @@
+{% load static %}
+<style>
+    /* CSS for _booking.html */
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        background-color: var(--background-color);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+        transform: scale(1.01);
+    }
+
+    .card-content {
+        margin-bottom: 15px;
+    }
+
+    .card-content h3 {
+        color: var(--label-color);
+        margin-bottom: 10px;
+    }
+
+    .card-content p {
+        margin: 5px 0;
+    }
+
+    .card-actions {
+        display: flex;
+        justify-content: flex-end; /* Adjust alignment */
+        align-items: center;
+        margin-top: 10px; /* Added margin for spacing */
+    }
+
+    .card-actions button {
+        padding: 8px 12px;
+        margin-left: 10px;
+    }
+
+    .zzz {
+        display: block; /* Ensures the image is a block element */
+        width: 100px; /* Set width of the image container */
+        height: 100px; /* Set height of the image container */
+        object-fit: cover; /* Crop the image to fit the container */
+        object-position: center; /* Center the image within the container */
+        margin: 0 auto; /* Center the image horizontally within its container */
+        opacity: 0.5;
+    }
+
+    .empty-message {
+        display: block; /* Ensures text is displayed as a block element */
+        text-align: center; /* Center-align text */
+        color: var(--label-color); /* Color for the empty message */
+        margin-top: 10px; /* Space between the image and the text */
+    }
+</style>
+{% if bookings and not driver_active_booking %}
+    <div class="card-container">
+        {% for booking in bookings %}
+        <style>
+            #route-map-{{ booking.id }} {
+                display: none;
+                margin-top: 10px;
+            }
+
+            #map-{{ booking.id }} {
+                width: 100%;
+                height: 300px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+
+            #distance-{{ booking.id }},
+            #estimated_duration-{{ booking.id }} {
+                margin-top: 10px 0;
+                font-style: italic;
+                color: var(--label-color);
+            }
+        </style>
+        <div class="card">
+            <div class="card-content">
+                <h3>Booking ID: {{ booking.booking_id }}</h3>
+                <p>Pickup Location: <strong>{{ booking.pickup_location }}</strong></p>
+                <p>Dropoff Location: <strong>{{ booking.dropoff_location }}</strong></p>
+                <p>Passenger Name: {{ booking.profile.first_name }} {{ booking.profile.last_name }}</p>
+                <p>Contact Number: {{ booking.profile.contact_number }}</p>
+                <p>Booked: {{ booking.created_at|date:"F j, Y | g:i A" }} ({{ booking.created_at|timesince }} ago)</p>
+            </div>
+            <div class="card-actions">
+                <button class="btn" onclick="driverPreviewRoute(this, '{{ booking.id }}', {{ booking.pickup_lat }}, {{ booking.pickup_lng }}, {{ booking.dropoff_lat }}, {{ booking.dropoff_lng }})">Preview Route</button>
+                <form method="post" action="{% url 'confirmed_view' booking_id=booking.booking_id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="booking_id" value="{{ booking.booking.id }}">
+                    <button type="submit" name="accept" class="btn">Accept</button>
+                </form>
+            </div>
+            <div id="route-map-{{ booking.id }}">
+                <div id="map-{{ booking.id }}"></div>
+                <p id="distance-{{ booking.id }}"></p>
+                <p id="estimated_duration-{{ booking.id }}"></p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-message">
+        <img src="{% static 'core/images/zzz.png' %}" alt="ZZZ" class="zzz">
+        <p>No available bookings at the moment.</p>
+    </div>
+{% endif %}

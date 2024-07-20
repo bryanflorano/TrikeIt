@@ -1,0 +1,136 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Review Trip | TrikeIt{% endblock %}
+
+{% block scripts %}
+<!-- JavaScript for star rating -->
+<script src="{% static 'core/js/star-rating.js' %}"></script>
+
+<!-- CSS for star rating styles -->
+<style>
+    .star-rating {
+        direction: rtl; /* Maintain RTL direction */
+        display: flex; /* Align stars horizontally */
+        justify-content: flex-start; /* Align stars to the left */
+        font-size: 2em; /* Font size for stars */
+        margin: 0; /* Ensure no additional margins */
+        padding: 0; /* Ensure no additional padding */
+        position: relative; /* Allows precise positioning */
+        width: fit-content; /* Adjust width to fit content */
+    }
+
+    .star-rating input[type="radio"] {
+        display: none; /* Hide radio buttons */
+        position: absolute; /* Hide off-screen */
+        opacity: 0; /* Fully transparent */
+    }
+
+    .star-rating label {
+        color: #ccc; /* Color for unselected stars */
+        padding: 0; /* Remove padding */
+        cursor: pointer; /* Show pointer cursor */
+        margin-right: 0.2em; /* Space between stars */
+        display: inline-block; /* Make labels behave like inline-block elements */
+        transition: color 0.2s ease-in-out; /* Smooth color transition */
+        position: relative; /* Required for absolute positioning of pseudo-elements */
+    }
+
+    .star-rating input[type="radio"]:checked ~ label {
+        color: #f5b301; /* Color for selected stars */
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: #f5b301; /* Color for hovered stars */
+    }
+
+    /* Optional: Provide visual feedback for focus */
+    .star-rating label:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #f5b301; /* Highlight focused star */
+    }
+
+    /* Force left alignment of stars */
+    .star-rating::before {
+        content: ''; /* Clear content */
+        display: block; /* Block display to occupy full width */
+        width: 100%; /* Full width to ensure proper alignment */
+        height: 0; /* No height required */
+        position: absolute; /* Absolute positioning */
+        left: 0; /* Align to the left */
+        top: 0; /* Align to the top */
+        direction: ltr; /* Override RTL direction */
+    }
+
+    .container {
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group {
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+
+    .rating-required-message {
+        color: red;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Review Trip</h2>
+    <p><strong>From:</strong> {{ past_trip.pickup_location }}</p>
+    <p><strong>To:</strong> {{ past_trip.dropoff_location }}</p>
+    <p><strong>Booking Time:</strong> {{ past_trip.created_at|date:"F j, Y | g:i A" }}</p>
+    <p><strong>Trip Completed:</strong> {{ past_trip.completed_at|date:"F j, Y | g:i A" }}</p>
+    <p><strong>Travel Time:</strong> {{ past_trip.duration|format_duration }}</p>
+
+    {% if profile.is_passenger %}
+    <!-- Form for passengers to submit a review -->
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="rating">Rating:</label>
+            <!-- Star rating input -->
+            <div class="star-rating">
+                <input type="radio" id="star5" name="rating" value="5" {% if past_trip.rating == 5 %}checked{% endif %}>
+                <label for="star5" title="5 Stars">★</label>
+                <input type="radio" id="star4" name="rating" value="4" {% if past_trip.rating == 4 %}checked{% endif %}>
+                <label for="star4" title="4 Stars">★</label>
+                <input type="radio" id="star3" name="rating" value="3" {% if past_trip.rating == 3 %}checked{% endif %}>
+                <label for="star3" title="3 Stars">★</label>
+                <input type="radio" id="star2" name="rating" value="2" {% if past_trip.rating == 2 %}checked{% endif %}>
+                <label for="star2" title="2 Stars">★</label>
+                <input type="radio" id="star1" name="rating" value="1" {% if past_trip.rating == 1 %}checked{% endif %}>
+                <label for="star1" title="1 Star">★</label>
+            </div>                      
+            <!-- Error message if rating is not selected -->
+            <p class="rating-required-message">Please select a rating.</p>
+        </div>
+        <div class="form-group">
+            <label for="comment">Comment:</label>
+            <!-- Textarea for feedback comment -->
+            <textarea id="comment" name="comment" placeholder="Leave your feedback...">{{ past_trip.comment }}</textarea>
+        </div>
+        <!-- Submit button with validation -->
+        <button type="submit" class="btn" name="submit_review" onclick="return validateRating()">Submit Review</button>
+    </form>
+    {% endif %}
+
+    {% if profile.is_driver %}
+    <!-- Thank you message for drivers -->
+    <p>Thank you for a safe and pleasant ride! Your service is greatly appreciated.</p>
+    <!-- Form for drivers to start a new trip -->
+    <form method="post" action="{% url 'index' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn">Find new bookings!</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

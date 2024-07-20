@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Payment Details | TrikeIt{% endblock %}
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% block content %}
+
+<style>
+    /* General styles */
+    .booking-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Payment Form */
+    #paymentForm {
+        background-color: var(--background-color);
+        padding: 20px;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+
+    /* Payment Method Select */
+    .payment-method-select {
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
+
+    /* Payment Details */
+    .payment-details {
+        display: none;
+        color: #555;
+    }
+</style>
+
+<div class="container">
+    
+    <!-- Booking details inside a container -->
+    <div class="booking-container">
+        <div class="booking-details">
+            <h2>Booking Summary</h2>
+            <p>Pick-up: <strong>{{ active_prebooking.pickup_location }}</strong></p>
+            <p>Drop-off: <strong>{{ active_prebooking.dropoff_location }}</strong></p>
+            <p>Distance: <strong>{{ active_prebooking.distance }}</strong></p>
+            <p>Duration: <strong>{{ active_prebooking.estimated_duration }}</strong></p>
+            <p>Fare: <strong>PHP {{ active_prebooking.fare }}</strong></p>
+        </div>
+
+        <!-- Edit Booking Button -->
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button type="submit" name="edit_booking" class="btn">Edit Booking</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Payment Form -->
+    <form id="paymentForm" method="post" action="{% url 'payment_view' %}">
+        {% csrf_token %}
+        
+        <!-- Payment Method Selection -->
+        <div class="payment-method-container">
+            <label for="payment_method">Payment Method:</label>
+            <select id="payment_method" name="payment_method" onchange="togglePaymentDetails()" class="payment-method-select">
+                <option value="cash">Cash</option>
+                <option value="e_wallet_bank">E-Wallet/Bank</option>
+            </select>
+            <!-- Additional Payment Details -->
+            <p id="payment_details" class="payment-details">Note: You will be redirected to our payment provider to complete the payment via E-Wallet/Bank.</p>
+        </div>
+        
+        <button type="submit" name="confirm_payment" class="btn">Confirm Payment</button>
+    </form>
+
+</div>
+
+{% block script %}
+<script>
+    function togglePaymentDetails() {
+        var paymentMethod = document.getElementById('payment_method').value;
+        var paymentMethodStyle = document.getElementById('payment_method');
+        var paymentDetails = document.getElementById('payment_details');
+        if (paymentMethod === 'e_wallet_bank') {
+            paymentDetails.style.display = 'block';
+            paymentMethodStyle.style.marginBottom = '0px';
+        } else {
+            paymentDetails.style.display = 'none';
+            paymentMethodStyle.style.marginBottom = '20px';
+        }
+    }
+</script>
+{% endblock %}
+
+{% endblock %}

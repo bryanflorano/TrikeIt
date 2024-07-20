@@ -1,0 +1,76 @@
+{% extends 'core/base.html' %}
+
+{% load static %}
+
+{% block title %}Finding a Driver | TrikeIt{% endblock %}
+
+{% block head %}
+    {% block scripts %}
+        <!-- Include Google Maps API with Places and Geometry libraries -->
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,geometry&callback=initMap" async defer></script>
+        <script src="{% static 'core/js/route-display.js' %}"></script>
+        <script>
+            // Initialize Google Maps and display route on load
+            window.onload = function() {
+                initMap(
+                    {{ booking.pickup_lat }},
+                    {{ booking.pickup_lng }},
+                    {{ booking.dropoff_lat }},
+                    {{ booking.dropoff_lng }}
+                );
+            };
+        </script> 
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Finding a Driver</h1>
+
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <!-- Booking details inside a container -->
+    <div class="booking-container">
+        <div class="booking-details">
+            <h3>Here's your ride details!</h3>
+            <p>Booking ID: <strong>{{ booking.booking_id }}</strong></p>
+            <p>From: <strong>{{ booking.pickup_location }}</strong></p>
+            <p>To: <strong>{{ booking.dropoff_location }}</strong></p>
+            <p id="distance">Distance: Calculating...</p>
+            <p id="estimated_duration">Estimated duration: Calculating...</p>
+            <p>Fare: PHP {{ booking.fare }}</p>
+        </div>
+
+        <!-- Cancel Booking Buttons -->
+        <div class="button-container-right">
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="cancel_booking" class="btn">Cancel Booking</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- CSS for styling -->
+<style>
+    .booking-container {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .booking-details {
+        flex-grow: 1;
+    }
+
+    .booking-details p {
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}

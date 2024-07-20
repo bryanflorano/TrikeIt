@@ -1,0 +1,139 @@
+/* styles.css */
+:root {
+    --primary-color: #5D001E;
+    --secondary-color: #9A1750;
+    --background-color: #f9f9f9;
+    --dark-background-color: #ddd;
+    --label-color: #1e1e1e;
+    --text-color: #121212;
+    --link-color: #1a0dab;
+    --button-color: #9A1750;
+    --button-text-color: #fff;
+    --button-hover-color: #87002C;
+    --border-color: #ddd;
+}
+
+/* General Styles */
+html {
+    font-size: 16px; /* Set a base font size */
+}
+
+body {
+    font-family: Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    font-size: 1rem; 
+    box-sizing: border-box;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+h1 {
+    font-size: 2rem; /* 32px */
+    color: var(--primary-color);
+}
+
+h2 {
+    font-size: 1.8rem; /* 24px */
+}
+
+p {
+    font-size: 0.875rem; /* 14px */
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    align-items: center; /* Center child elements horizontally */
+    justify-content: center; /* Center child elements vertically */
+}
+
+/* Main Content Styles */
+main {
+    padding: 20px;
+}
+
+/* Map Container Styles */
+#map {
+    height: 400px; /* Ensure the map has a height */
+    width: 100%; /* Ensure the map takes full width of the container */
+    border: 1px solid var(--border-color); /* Optional: adds a border around the map */
+    border-radius: 5px; /* Optional: adds rounded corners */
+    margin-top: 20px; /* Adds margin for spacing */
+    margin-bottom: 20px;
+}
+
+/* Profile Image Styles */
+.profile-image {
+    margin-right: 20px;
+    width: 150px;
+    height: 150px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    object-fit: cover; /* This crops the image to fit the container */
+    object-position: center; /* This centers the image within the container */
+}
+
+/* General Button Styles */
+.btn {
+    background-color: var(--button-color);
+    color: var(--button-text-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1em;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn:hover {
+    background-color: var(--button-hover-color);
+    transform: scale(1.02); /* Apply scale effect on hover */
+}
+
+.button-container-right {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Labels and Inputs */
+label {
+    display: block;
+    font-weight: bold;
+    color: var(--label-color);
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+textarea,
+select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 1em;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+/* Messages */
+.messages {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.messages li {
+    background-color: var(--dark-background-color);
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}

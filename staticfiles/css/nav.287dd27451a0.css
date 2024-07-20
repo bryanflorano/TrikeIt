@@ -1,0 +1,14 @@
+/* Navigation Links Styles */
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 10px 0;
+    background-color: var(--secondary-color);
+}
+
+.nav-buttons a {
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: inline-block;
+}
